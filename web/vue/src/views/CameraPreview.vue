@@ -499,7 +499,33 @@ const applyBeautyParam = (tab, functionKey, value) => {
         case 'thin_face':
           engine.setReshapeParam(ReshapeParam.FaceThin, paramValue)
           break
-        // TODO: 添加其他美型参数
+        case 'v_face':
+          engine.setReshapeParam(ReshapeParam.FaceVShape, paramValue)
+          break
+        case 'narrow_face':
+          engine.setReshapeParam(ReshapeParam.FaceNarrow, paramValue)
+          break
+        case 'short_face':
+          engine.setReshapeParam(ReshapeParam.FaceShort, paramValue)
+          break
+        case 'cheekbone':
+          engine.setReshapeParam(ReshapeParam.Cheekbone, paramValue)
+          break
+        case 'jawbone':
+          engine.setReshapeParam(ReshapeParam.Jawbone, paramValue)
+          break
+        case 'chin':
+          engine.setReshapeParam(ReshapeParam.Chin, paramValue)
+          break
+        case 'nose_slim':
+          engine.setReshapeParam(ReshapeParam.NoseSlim, paramValue)
+          break
+        case 'big_eye':
+          engine.setReshapeParam(ReshapeParam.EyeSize, paramValue)
+          break
+        case 'eye_distance':
+          engine.setReshapeParam(ReshapeParam.EyeDistance, paramValue)
+          break
       }
     } else if (tab === 'makeup') {
       switch (functionKey) {
@@ -573,7 +599,15 @@ const resetTabParams = (tab) => {
       engine.setBasicParam(BasicParam.Rosiness, 0)
     } else if (tab === 'reshape') {
       engine.setReshapeParam(ReshapeParam.FaceThin, 0)
-      // TODO: 重置其他美型参数
+      engine.setReshapeParam(ReshapeParam.FaceVShape, 0)
+      engine.setReshapeParam(ReshapeParam.FaceNarrow, 0)
+      engine.setReshapeParam(ReshapeParam.FaceShort, 0)
+      engine.setReshapeParam(ReshapeParam.Cheekbone, 0)
+      engine.setReshapeParam(ReshapeParam.Jawbone, 0)
+      engine.setReshapeParam(ReshapeParam.Chin, 0)
+      engine.setReshapeParam(ReshapeParam.NoseSlim, 0)
+      engine.setReshapeParam(ReshapeParam.EyeSize, 0)
+      engine.setReshapeParam(ReshapeParam.EyeDistance, 0)
     } else if (tab === 'makeup') {
       engine.setMakeupParam(MakeupParam.Lipstick, 0)
       engine.setMakeupParam(MakeupParam.Blush, 0)
@@ -633,7 +667,15 @@ const resetAllParams = () => {
 
     // 重置美型
     engine.setReshapeParam(ReshapeParam.FaceThin, 0)
-    // TODO: 重置其他美型参数
+    engine.setReshapeParam(ReshapeParam.FaceVShape, 0)
+    engine.setReshapeParam(ReshapeParam.FaceNarrow, 0)
+    engine.setReshapeParam(ReshapeParam.FaceShort, 0)
+    engine.setReshapeParam(ReshapeParam.Cheekbone, 0)
+    engine.setReshapeParam(ReshapeParam.Jawbone, 0)
+    engine.setReshapeParam(ReshapeParam.Chin, 0)
+    engine.setReshapeParam(ReshapeParam.NoseSlim, 0)
+    engine.setReshapeParam(ReshapeParam.EyeSize, 0)
+    engine.setReshapeParam(ReshapeParam.EyeDistance, 0)
 
     // 重置美妆
     engine.setMakeupParam(MakeupParam.Lipstick, 0)
@@ -887,8 +929,11 @@ const saveCurrentBeautyParams = () => {
   beautyParams.beauty.rosiness = rosinessValue / 100.0
   
   // 获取美型参数
-  const thinFaceValue = beautyPanelRef.value.getSliderValue('reshape', 'thin_face') || 0
-  beautyParams.reshape.thin_face = thinFaceValue / 100.0
+  const reshapeKeys = ['thin_face', 'v_face', 'narrow_face', 'short_face', 'cheekbone', 'jawbone', 'chin', 'nose_slim', 'big_eye', 'eye_distance']
+  reshapeKeys.forEach(key => {
+    const value = beautyPanelRef.value.getSliderValue('reshape', key) || 0
+    beautyParams.reshape[key] = value / 100.0
+  })
   
   savedBeautyParams.value = beautyParams
 }
@@ -925,13 +970,16 @@ const restoreBeautyParams = () => {
   
   // 恢复美型参数
   if (params.reshape) {
-    if (params.reshape.thin_face !== undefined) {
-      const value = params.reshape.thin_face
-      applyBeautyParam('reshape', 'thin_face', value)
-      if (beautyPanelRef.value) {
-        beautyPanelRef.value.updateSliderValue('reshape', 'thin_face', Math.round(value * 100))
+    const reshapeKeys = ['thin_face', 'v_face', 'narrow_face', 'short_face', 'cheekbone', 'jawbone', 'chin', 'nose_slim', 'big_eye', 'eye_distance']
+    reshapeKeys.forEach(key => {
+      if (params.reshape[key] !== undefined) {
+        const value = params.reshape[key]
+        applyBeautyParam('reshape', key, value)
+        if (beautyPanelRef.value) {
+          beautyPanelRef.value.updateSliderValue('reshape', key, Math.round(value * 100))
+        }
       }
-    }
+    })
   }
 }
 

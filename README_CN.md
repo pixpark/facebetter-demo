@@ -21,7 +21,7 @@
 
 **重要说明：**
 - **本仓库仅包含 Demo 源码** - 各平台的完整示例项目，展示如何使用 Facebetter SDK
-- **预编译的 SDK 库文件不包含在本仓库中** - 请在 [Releases](https://github.com/pixpark/facebetter/releases) 页面下载 SDK 库文件的 zip 包
+- **预编译的 SDK 库文件不包含在本仓库中** - 请在 [Releases](https://github.com/pixpark/facebetter-sdk/releases) 页面下载 SDK 库文件的 zip 包
 
 ## 目录结构
 

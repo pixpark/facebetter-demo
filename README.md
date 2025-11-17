@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://github.com/pixpark/facebetter"><img src="./assets/logo-light.svg" alt="Facebetter Logo" width="200"></a>
+  <a href="https://github.com/pixpark/facebetter-demo"><img src="./assets/logo-light.svg" alt="Facebetter Logo" width="200"></a>
 </h1>
 
 <p align="center">
@@ -19,7 +19,7 @@ This repository contains **Facebetter SDK** demo source code for all supported p
 
 **Important Notes:**
 - **This repository only contains demo source code** - Complete example projects for each platform, demonstrating how to use Facebetter SDK
-- **Pre-compiled SDK libraries are NOT included in this repository** - Download SDK library files from the [Releases](https://github.com/pixpark/facebetter/releases) section as downloadable zip packages
+- **Pre-compiled SDK libraries are NOT included in this repository** - Download SDK library files from the [Releases](https://github.com/pixpark/facebetter-sdk/releases) section as downloadable zip packages
 
 ## Directory Structure
 
