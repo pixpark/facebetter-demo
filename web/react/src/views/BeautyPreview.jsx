@@ -12,9 +12,9 @@ import {
   VirtualBackgroundOptions,
   ProcessMode 
 } from 'facebetter'
-import './CameraPreview.css'
+import './BeautyPreview.css'
 
-function CameraPreview() {
+function BeautyPreview() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') || null
@@ -216,8 +216,30 @@ function CameraPreview() {
           displayCtxRef.current = canvas.getContext('2d')
         }
         
-        // 使用 putImageData 绘制
-        displayCtx.putImageData(processed, 0, 0)
+        // 创建临时 canvas 用于镜像显示
+        // putImageData 不受变换影响，所以需要先绘制到临时 canvas，再用 drawImage 镜像
+        const tempCanvas = document.createElement('canvas')
+        tempCanvas.width = processed.width
+        tempCanvas.height = processed.height
+        const tempCtx = tempCanvas.getContext('2d')
+        tempCtx.putImageData(processed, 0, 0)
+        
+        // 清空显示画布
+        displayCtx.clearRect(0, 0, canvas.width, canvas.height)
+        
+        // 保存上下文状态
+        displayCtx.save()
+        
+        // 应用水平翻转变换（镜像显示）
+        // scale(-1, 1) 表示水平翻转，translate 用于调整位置
+        displayCtx.scale(-1, 1)
+        displayCtx.translate(-canvas.width, 0)
+        
+        // 使用 drawImage 绘制临时 canvas（会受变换影响，实现镜像）
+        displayCtx.drawImage(tempCanvas, 0, 0)
+        
+        // 恢复上下文状态
+        displayCtx.restore()
         
         // 设置CSS样式以实现等比缩放适应容器
         const container = canvas.parentElement
@@ -826,8 +848,15 @@ function CameraPreview() {
     }
 
     try {
-      const width = canvas.width
-      const height = canvas.height
+      // 使用处理后的原始图像数据
+      if (!lastProcessedFrameRef.current) {
+        setStatusMessage('没有可保存的图像')
+        setTimeout(() => setStatusMessage(''), 2000)
+        return
+      }
+
+      const width = lastProcessedFrameRef.current.width
+      const height = lastProcessedFrameRef.current.height
 
       if (width === 0 || height === 0) {
         setStatusMessage('画布尺寸无效')
@@ -841,8 +870,26 @@ function CameraPreview() {
       exportCanvas.height = height
       const exportCtx = exportCanvas.getContext('2d')
       
-      // 将显示画布的内容绘制到导出画布
-      exportCtx.drawImage(canvas, 0, 0)
+      // 根据模式决定是否镜像
+      if (isImageMode) {
+        // 图片模式：保存正常方向的图片（不需要镜像）
+        exportCtx.putImageData(lastProcessedFrameRef.current, 0, 0)
+      } else {
+        // 相机模式：保存镜像图片（与预览一致）
+        // 创建临时 canvas 用于镜像
+        const tempCanvas = document.createElement('canvas')
+        tempCanvas.width = width
+        tempCanvas.height = height
+        const tempCtx = tempCanvas.getContext('2d')
+        tempCtx.putImageData(lastProcessedFrameRef.current, 0, 0)
+        
+        // 应用水平翻转变换（镜像）
+        exportCtx.save()
+        exportCtx.scale(-1, 1)
+        exportCtx.translate(-width, 0)
+        exportCtx.drawImage(tempCanvas, 0, 0)
+        exportCtx.restore()
+      }
 
       // 转换为blob并下载
       exportCanvas.toBlob((blob) => {
@@ -869,7 +916,7 @@ function CameraPreview() {
       setStatusMessage('拍照失败: ' + error.message)
       setTimeout(() => setStatusMessage(''), 2000)
     }
-  }, [])
+  }, [isImageMode])
 
   // 清理资源
   const cleanup = useCallback(() => {
@@ -1027,5 +1074,5 @@ function CameraPreview() {
   )
 }
 
-export default CameraPreview
+export default BeautyPreview
 

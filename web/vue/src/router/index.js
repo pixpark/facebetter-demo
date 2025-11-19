@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import CameraPreview from '../views/CameraPreview.vue'
+import BeautyPreview from '../views/BeautyPreview.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,8 +12,8 @@ const router = createRouter({
     },
     {
       path: '/camera',
-      name: 'CameraPreview',
-      component: CameraPreview,
+      name: 'BeautyPreview',
+      component: BeautyPreview,
       props: route => ({ initialTab: route.query.tab || null })
     }
   ]

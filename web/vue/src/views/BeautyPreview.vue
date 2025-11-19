@@ -1,9 +1,18 @@
+<!--
+  美颜预览页面组件
+  功能：
+  - 实时相机预览美颜（支持镜像显示）
+  - 图片美颜处理
+  - 美颜参数调节（磨皮、美白、红润、瘦脸等）
+  - 拍照保存
+  - 前后对比功能
+-->
 <template>
   <div class="camera-preview-container">
-    <!-- 相机预览画布 -->
+    <!-- 相机预览画布：显示处理后的视频帧或图片 -->
     <canvas ref="displayCanvas" class="camera-canvas"></canvas>
 
-    <!-- 隐藏的文件选择器 -->
+    <!-- 隐藏的文件选择器：用于选择本地图片 -->
     <input
       ref="fileInput"
       type="file"
@@ -133,83 +142,88 @@ import {
   ProcessMode 
 } from 'facebetter'
 
+// ==================== Props ====================
 const props = defineProps({
+  /** 初始激活的标签页（beauty/reshape/makeup/virtual_bg） */
   initialTab: {
     type: String,
     default: null
   }
 })
 
+// ==================== 组件引用 ====================
 const router = useRouter()
-const displayCanvas = ref(null)
-const beautySeekBar = ref(null)
-const beautyPanelRef = ref(null)
-const fileInput = ref(null)
+const displayCanvas = ref(null)      // 显示画布引用
+const beautySeekBar = ref(null)      // 美颜滑块引用
+const beautyPanelRef = ref(null)     // 美颜面板组件引用
+const fileInput = ref(null)          // 文件选择器引用
 
-// 状态管理
-const statusMessage = ref('')
-const showBeautyPanel = ref(false)
-const showBeautySlider = ref(false)
-const showSliderValue = ref(false)
-const currentTab = ref('beauty')
-const currentFunction = ref(null)
-const isProcessing = ref(false)
-const isActive = ref(false)
+// ==================== 状态管理 ====================
+const statusMessage = ref('')              // 状态提示消息
+const showBeautyPanel = ref(false)         // 是否显示美颜面板
+const showBeautySlider = ref(false)        // 是否显示美颜滑块
+const showSliderValue = ref(false)         // 是否显示滑块数值
+const currentTab = ref('beauty')           // 当前激活的标签页
+const currentFunction = ref(null)          // 当前选中的功能
+const isProcessing = ref(false)            // 是否正在处理帧
+const isActive = ref(false)                // 相机是否激活
 
-// 检测是否为移动设备
-const isMobileDevice = ref(false)
+// ==================== 设备检测 ====================
+const isMobileDevice = ref(false)         // 是否为移动设备
 
-// 滑块相关
-const currentSliderValue = ref(0)
-const sliderValue = ref(0)
-const sliderValuePosition = ref(0)
+// ==================== 滑块相关 ====================
+const currentSliderValue = ref(0)          // 当前滑块值（0-100）
+const sliderValue = ref(0)                 // 显示的滑块值
+const sliderValuePosition = ref(0)         // 滑块数值文本位置
 
-// 对比按钮相关：保存当前美颜参数状态
+// ==================== 前后对比功能 ====================
+/** 保存的美颜参数状态（用于前后对比） */
 const savedBeautyParams = ref({
   beauty: {
-    white: 0,
-    smooth: 0,
-    rosiness: 0
+    white: 0,      // 美白
+    smooth: 0,     // 磨皮
+    rosiness: 0    // 红润
   },
   reshape: {
-    thin_face: 0
+    thin_face: 0   // 瘦脸
   }
 })
-const isBeforeAfterPressed = ref(false)
+const isBeforeAfterPressed = ref(false)   // 是否按下前后对比按钮
 
-// 引擎和视频相关
-let engine = null
-let videoElement = null
-let videoStream = null
-let displayCtx = null
-let animationFrameId = null
-let lastProcessedFrame = null
-let sliderValueTimer = null
+// ==================== 引擎和视频相关 ====================
+let engine = null              // Facebetter 美颜引擎实例
+let videoElement = null        // 视频元素
+let videoStream = null         // 视频流
+let displayCtx = null         // 显示画布的 2D 上下文
+let animationFrameId = null    // 动画帧 ID
+let lastProcessedFrame = null  // 最后处理后的帧数据（用于拍照保存）
+let sliderValueTimer = null    // 滑块数值隐藏定时器
 
-// 图片处理模式相关
-const isImageMode = ref(false)
-let currentImage = null
-let imageElement = null
+// ==================== 图片处理模式 ====================
+const isImageMode = ref(false)  // 是否为图片处理模式
+let currentImage = null          // 当前图片文件
+let imageElement = null         // 当前图片元素
 
+// ==================== 生命周期 ====================
 onMounted(async () => {
   try {
-    // 检测是否为移动设备
+    // 检测是否为移动设备（用于判断是否支持切换摄像头）
     isMobileDevice.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                           ('ontouchstart' in window || navigator.maxTouchPoints > 0)
     
-    // 等待DOM渲染完成后再初始化画布
+    // 等待 DOM 渲染完成后再初始化画布
     await nextTick()
     
     // 初始化画布
     initCanvas()
     
-    // 初始化引擎
+    // 初始化美颜引擎
     await initEngine()
     
     // 启动相机
     await startCamera()
     
-    // 如果有初始标签，打开面板并切换
+    // 如果有初始标签，打开面板并切换到对应标签
     if (props.initialTab) {
       showBeautyPanel.value = true
       currentTab.value = props.initialTab
@@ -221,14 +235,19 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  // 清理资源
   cleanup()
 })
 
-// 初始化画布
+// ==================== 初始化函数 ====================
+/**
+ * 初始化显示画布
+ * 设置画布尺寸为容器尺寸（最大宽度 1200px）
+ */
 const initCanvas = () => {
   const canvas = displayCanvas.value
   const container = canvas.parentElement
-  // 使用容器的实际宽度（最大1200px），而不是窗口宽度
+  // 使用容器的实际宽度（最大 1200px），而不是窗口宽度
   const containerWidth = container ? Math.min(container.clientWidth, 1200) : window.innerWidth
   const containerHeight = container ? container.clientHeight : window.innerHeight
   canvas.width = containerWidth
@@ -236,7 +255,10 @@ const initCanvas = () => {
   displayCtx = canvas.getContext('2d')
 }
 
-// 初始化引擎
+/**
+ * 初始化 Facebetter 美颜引擎
+ * 配置引擎参数并启用所需的美颜功能
+ */
 const initEngine = async () => {
   const config = new EngineConfig({
     appId: '',
@@ -245,38 +267,43 @@ const initEngine = async () => {
 
   engine = new BeautyEffectEngine(config)
 
-  // 配置日志
+  // 配置日志输出
   await engine.setLogConfig({
-    consoleEnabled: true,
-    fileEnabled: false,
-    level: 0
+    consoleEnabled: true,  // 控制台日志
+    fileEnabled: false,     // 文件日志
+    level: 0                // 日志级别
   })
 
   // 初始化引擎
   await engine.init()
 
-  // 启用美颜类型
-  engine.setBeautyTypeEnabled(BeautyType.Basic, true)
-  engine.setBeautyTypeEnabled(BeautyType.Reshape, true)
-  engine.setBeautyTypeEnabled(BeautyType.Makeup, true)
-  engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)
+  // 启用所需的美颜类型
+  engine.setBeautyTypeEnabled(BeautyType.Basic, true)              // 基础美颜（磨皮、美白、红润）
+  engine.setBeautyTypeEnabled(BeautyType.Reshape, true)             // 美型（瘦脸、大眼等）
+  engine.setBeautyTypeEnabled(BeautyType.Makeup, true)             // 美妆（口红、腮红等）
+  engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)   // 虚拟背景
 
   statusMessage.value = '引擎初始化成功'
   setTimeout(() => { statusMessage.value = '' }, 2000)
 }
 
-// 启动相机
+/**
+ * 启动相机
+ * 获取用户媒体流并开始处理视频帧
+ */
 const startCamera = async () => {
   try {
+    // 获取用户媒体流（摄像头）
     videoStream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        frameRate: { ideal: 30 }
+        width: { ideal: 1280 },   // 理想宽度
+        height: { ideal: 720 },   // 理想高度
+        frameRate: { ideal: 30 }  // 理想帧率
       },
-      audio: false
+      audio: false  // 不需要音频
     })
 
+    // 创建视频元素并设置流
     videoElement = document.createElement('video')
     videoElement.srcObject = videoStream
     videoElement.autoplay = true
@@ -294,8 +321,13 @@ const startCamera = async () => {
   }
 }
 
-// 处理视频帧
+/**
+ * 处理视频帧
+ * 从视频元素获取帧数据，使用美颜引擎处理，然后镜像显示到画布
+ * 注意：相机预览需要镜像显示（符合用户习惯），但保存的照片是正常方向的
+ */
 const processVideoFrame = async () => {
+  // 检查前置条件
   if (!isActive.value || !engine || !videoElement || !videoElement.videoWidth) {
     if (isActive.value) {
       animationFrameId = requestAnimationFrame(processVideoFrame)
@@ -303,6 +335,7 @@ const processVideoFrame = async () => {
     return
   }
 
+  // 防止重复处理（如果上一帧还在处理中，跳过当前帧）
   if (!isProcessing.value) {
     isProcessing.value = true
 
@@ -315,27 +348,50 @@ const processVideoFrame = async () => {
       ctx.drawImage(videoElement, 0, 0)
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       
-      // 处理视频帧
+      // 使用美颜引擎处理视频帧
       const processed = engine.processImage(imageData, canvas.width, canvas.height, ProcessMode.Video)
 
-      // 存储处理后的帧
+      // 存储处理后的帧（用于拍照保存，保存的是未镜像的原始数据）
       lastProcessedFrame = processed
 
-      // 绘制到画布
+      // 绘制到显示画布
       if (displayCtx && displayCanvas.value) {
         const canvas = displayCanvas.value
         
-        // 画布的实际尺寸应该匹配处理后的图像尺寸（确保完整显示）
+        // 调整画布尺寸以匹配处理后的图像尺寸
         if (canvas.width !== processed.width || canvas.height !== processed.height) {
           canvas.width = processed.width
           canvas.height = processed.height
           displayCtx = canvas.getContext('2d')
         }
         
-        // 使用 putImageData 绘制（尺寸已匹配）
-        displayCtx.putImageData(processed, 0, 0)
+        // 创建临时 canvas 用于镜像显示
+        // 注意：putImageData 不受 canvas 变换影响，所以需要先绘制到临时 canvas
+        // 然后使用 drawImage 配合变换来实现镜像
+        const tempCanvas = document.createElement('canvas')
+        tempCanvas.width = processed.width
+        tempCanvas.height = processed.height
+        const tempCtx = tempCanvas.getContext('2d')
+        tempCtx.putImageData(processed, 0, 0)
         
-        // 设置CSS样式以实现等比缩放适应容器（保持宽高比，完整显示）
+        // 清空显示画布
+        displayCtx.clearRect(0, 0, canvas.width, canvas.height)
+        
+        // 保存上下文状态
+        displayCtx.save()
+        
+        // 应用水平翻转变换（镜像显示）
+        // scale(-1, 1) 表示水平翻转，translate 用于调整位置
+        displayCtx.scale(-1, 1)
+        displayCtx.translate(-canvas.width, 0)
+        
+        // 使用 drawImage 绘制临时 canvas（会受变换影响，实现镜像）
+        displayCtx.drawImage(tempCanvas, 0, 0)
+        
+        // 恢复上下文状态
+        displayCtx.restore()
+        
+        // 设置 CSS 样式以实现等比缩放适应容器（保持宽高比，完整显示）
         const container = canvas.parentElement
         if (container) {
           const maxWidth = Math.min(container.clientWidth, 1200)
@@ -366,24 +422,41 @@ const processVideoFrame = async () => {
     isProcessing.value = false
   }
 
+  // 继续处理下一帧
   if (isActive.value) {
     animationFrameId = requestAnimationFrame(processVideoFrame)
   }
 }
 
-// Tab切换
+// ==================== 美颜面板事件处理 ====================
+/**
+ * Tab 切换事件处理
+ * @param {string} tabId - 标签页 ID（beauty/reshape/makeup/virtual_bg）
+ */
 const onTabChanged = (tabId) => {
   currentTab.value = tabId
   currentFunction.value = null
   hideSlider()
 }
 
-// 美颜参数变化
+/**
+ * 美颜参数变化事件处理
+ * @param {Object} data - 参数数据
+ * @param {string} data.tab - 标签页
+ * @param {string} data.function - 功能键
+ * @param {number} data.value - 参数值（0-100）
+ */
 const onBeautyParamChanged = (data) => {
   applyBeautyParam(data.tab, data.function, data.value)
 }
 
-// 显示滑块
+/**
+ * 显示滑块事件处理
+ * @param {Object} data - 滑块数据
+ * @param {string} data.tab - 标签页
+ * @param {string} data.function - 功能键
+ * @param {number} data.value - 当前值（0-100）
+ */
 const onShowSlider = (data) => {
   currentFunction.value = data.function
   currentSliderValue.value = data.value
@@ -391,17 +464,21 @@ const onShowSlider = (data) => {
   updateSliderValuePosition()
   showBeautySlider.value = true
   
-  // 立即应用一次参数
+  // 立即应用一次参数（转换为 0.0-1.0）
   applyBeautyParam(data.tab, data.function, data.value / 100.0)
 }
 
-// 隐藏滑块
+/**
+ * 隐藏滑块事件处理
+ */
 const onHideSlider = () => {
   showBeautySlider.value = false
   showSliderValue.value = false
 }
 
-// 重置美颜
+/**
+ * 重置所有美颜参数
+ */
 const onResetBeauty = () => {
   currentSliderValue.value = 0
   currentFunction.value = null
@@ -409,31 +486,42 @@ const onResetBeauty = () => {
   resetAllParams()
 }
 
-// 重置Tab参数
+/**
+ * 重置指定 Tab 的参数
+ * @param {string} tab - 标签页 ID
+ */
 const onResetTab = (tab) => {
   resetTabParams(tab)
 }
 
-// 隐藏面板
+/**
+ * 隐藏美颜面板
+ */
 const onHidePanel = () => {
   showBeautyPanel.value = false
   hideSlider()
 }
 
-// 隐藏滑动条
+/**
+ * 隐藏滑动条
+ */
 const hideSlider = () => {
   showBeautySlider.value = false
   showSliderValue.value = false
 }
 
-// 滑块变化
+// ==================== 滑块事件处理 ====================
+/**
+ * 滑块值变化事件处理
+ * @param {Event} event - 输入事件
+ */
 const onSliderChange = (event) => {
   const value = parseInt(event.target.value)
   currentSliderValue.value = value
   sliderValue.value = value
   updateSliderValuePosition()
 
-  // 保存进度到BeautyPanel组件
+  // 同步进度到 BeautyPanel 组件
   if (currentFunction.value && beautyPanelRef.value) {
     beautyPanelRef.value.updateSliderValue(currentTab.value, currentFunction.value, value)
   }
@@ -444,12 +532,17 @@ const onSliderChange = (event) => {
   }
 }
 
-// 滑块开始
+/**
+ * 滑块开始拖动事件处理
+ */
 const onSliderStart = () => {
   showSliderValue.value = true
 }
 
-// 滑块结束
+/**
+ * 滑块结束拖动事件处理
+ * 延迟 500ms 后隐藏数值显示
+ */
 const onSliderEnd = () => {
   if (sliderValueTimer) {
     clearTimeout(sliderValueTimer)
@@ -459,27 +552,36 @@ const onSliderEnd = () => {
   }, 500)
 }
 
-// 更新滑块数值位置
+/**
+ * 更新滑块数值文本位置
+ * 根据滑块当前值计算数值文本的显示位置
+ */
 const updateSliderValuePosition = () => {
   nextTick(() => {
     if (!beautySeekBar.value) return
     
     const slider = beautySeekBar.value
     const sliderRect = slider.getBoundingClientRect()
-    const sliderWidth = sliderRect.width - 32 // 减去左右padding
+    const sliderWidth = sliderRect.width - 32  // 减去左右 padding
     const thumbPos = (currentSliderValue.value / 100) * sliderWidth
     
-    // 计算数值文本位置（居中在thumb上方）
-    sliderValuePosition.value = thumbPos + 16 // 加上左边距
+    // 计算数值文本位置（居中在 thumb 上方）
+    sliderValuePosition.value = thumbPos + 16  // 加上左边距
   })
 }
 
-// 应用美颜参数
+// ==================== 美颜参数应用 ====================
+/**
+ * 应用美颜参数到引擎
+ * @param {string} tab - 标签页（beauty/reshape/makeup/virtual_bg）
+ * @param {string} functionKey - 功能键
+ * @param {number} value - 参数值（0.0-1.0）
+ */
 const applyBeautyParam = (tab, functionKey, value) => {
   if (!engine) return
 
   try {
-    // API 期望 0.0-1.0 的浮点数，value 已经是 0.0-1.0 格式
+    // 确保参数值在 0.0-1.0 范围内
     const paramValue = Math.max(0, Math.min(1, value))
 
     if (tab === 'beauty') {
@@ -545,13 +647,13 @@ const applyBeautyParam = (tab, functionKey, value) => {
     } else if (tab === 'virtual_bg') {
       // 虚拟背景功能使用统一的 Options API（与其他平台一致）
       if (functionKey === 'blur') {
-        // 模糊背景
+        // 模糊背景模式
         const options = new VirtualBackgroundOptions({
           mode: value > 0 ? BackgroundMode.Blur : BackgroundMode.None
         })
         engine.setVirtualBackground(options)
       } else if (functionKey === 'preset') {
-        // 预置背景：加载预置图片并设置为Image模式
+        // 预置背景：加载预置图片并设置为 Image 模式
         if (value > 0) {
           loadPresetBackground()
         } else {
@@ -562,8 +664,8 @@ const applyBeautyParam = (tab, functionKey, value) => {
         }
       } else if (functionKey === 'image') {
         // 图像背景：需要用户选择图片
-        // 如果value > 0，说明用户想开启图像背景，但需要先选择图片
-        // 这里先设置为None，实际图片选择功能在BeautyPanel中处理
+        // 如果 value > 0，说明用户想开启图像背景，但需要先选择图片
+        // 这里先设置为 None，实际图片选择功能在 BeautyPanel 中处理
         if (value <= 0) {
           const options = new VirtualBackgroundOptions({
             mode: BackgroundMode.None
@@ -588,7 +690,10 @@ const applyBeautyParam = (tab, functionKey, value) => {
   }
 }
 
-// 重置Tab参数
+/**
+ * 重置指定 Tab 的所有参数
+ * @param {string} tab - 标签页 ID
+ */
 const resetTabParams = (tab) => {
   if (!engine) return
 
@@ -627,7 +732,10 @@ const resetTabParams = (tab) => {
   }
 }
 
-// 加载预置背景图片
+/**
+ * 加载预置背景图片
+ * 从 /background.jpg 加载图片并设置为虚拟背景
+ */
 const loadPresetBackground = async () => {
   if (!engine) return
 
@@ -635,6 +743,7 @@ const loadPresetBackground = async () => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     
+    // 等待图片加载完成
     await new Promise((resolve, reject) => {
       img.onload = resolve
       img.onerror = () => reject(new Error('预置背景图片加载失败'))
@@ -655,78 +764,100 @@ const loadPresetBackground = async () => {
   }
 }
 
-// 重置所有参数
+/**
+ * 重置所有美颜参数
+ * 将所有美颜、美型、美妆、虚拟背景参数重置为 0
+ */
 const resetAllParams = () => {
   if (!engine) return
 
   try {
-    // 重置基础美颜
-    engine.setBasicParam(BasicParam.Whitening, 0)
-    engine.setBasicParam(BasicParam.Smoothing, 0)
-    engine.setBasicParam(BasicParam.Rosiness, 0)
+    // 重置基础美颜参数
+    engine.setBasicParam(BasicParam.Whitening, 0)   // 美白
+    engine.setBasicParam(BasicParam.Smoothing, 0)   // 磨皮
+    engine.setBasicParam(BasicParam.Rosiness, 0)    // 红润
 
-    // 重置美型
-    engine.setReshapeParam(ReshapeParam.FaceThin, 0)
-    engine.setReshapeParam(ReshapeParam.FaceVShape, 0)
-    engine.setReshapeParam(ReshapeParam.FaceNarrow, 0)
-    engine.setReshapeParam(ReshapeParam.FaceShort, 0)
-    engine.setReshapeParam(ReshapeParam.Cheekbone, 0)
-    engine.setReshapeParam(ReshapeParam.Jawbone, 0)
-    engine.setReshapeParam(ReshapeParam.Chin, 0)
-    engine.setReshapeParam(ReshapeParam.NoseSlim, 0)
-    engine.setReshapeParam(ReshapeParam.EyeSize, 0)
-    engine.setReshapeParam(ReshapeParam.EyeDistance, 0)
+    // 重置美型参数
+    engine.setReshapeParam(ReshapeParam.FaceThin, 0)      // 瘦脸
+    engine.setReshapeParam(ReshapeParam.FaceVShape, 0)      // V 脸
+    engine.setReshapeParam(ReshapeParam.FaceNarrow, 0)     // 窄脸
+    engine.setReshapeParam(ReshapeParam.FaceShort, 0)      // 短脸
+    engine.setReshapeParam(ReshapeParam.Cheekbone, 0)      // 颧骨
+    engine.setReshapeParam(ReshapeParam.Jawbone, 0)        // 下颌骨
+    engine.setReshapeParam(ReshapeParam.Chin, 0)           // 下巴
+    engine.setReshapeParam(ReshapeParam.NoseSlim, 0)        // 瘦鼻
+    engine.setReshapeParam(ReshapeParam.EyeSize, 0)         // 大眼
+    engine.setReshapeParam(ReshapeParam.EyeDistance, 0)     // 眼距
 
-    // 重置美妆
-    engine.setMakeupParam(MakeupParam.Lipstick, 0)
-    engine.setMakeupParam(MakeupParam.Blush, 0)
+    // 重置美妆参数
+    engine.setMakeupParam(MakeupParam.Lipstick, 0)  // 口红
+    engine.setMakeupParam(MakeupParam.Blush, 0)     // 腮红
 
     // 重置虚拟背景
-      const options = new VirtualBackgroundOptions({
-        mode: BackgroundMode.None
-      })
-      engine.setVirtualBackground(options)
+    const options = new VirtualBackgroundOptions({
+      mode: BackgroundMode.None
+    })
+    engine.setVirtualBackground(options)
   } catch (error) {
     console.error('重置所有参数失败:', error)
   }
 }
 
 
-// 底部按钮点击
+// ==================== UI 交互事件 ====================
+/**
+ * 美颜美型按钮点击
+ */
 const onBeautyShapeClick = () => {
   showBeautyPanel.value = true
   currentTab.value = 'beauty'
 }
 
+/**
+ * 美妆按钮点击
+ */
 const onMakeupClick = () => {
   showBeautyPanel.value = true
   currentTab.value = 'makeup'
 }
 
+/**
+ * 贴纸特效按钮点击
+ */
 const onStickerClick = () => {
   showBeautyPanel.value = true
   currentTab.value = 'sticker'
 }
 
+/**
+ * 滤镜调色按钮点击
+ */
 const onFilterClick = () => {
   showBeautyPanel.value = true
   currentTab.value = 'filter'
 }
 
-// 返回主页
+/**
+ * 返回主页
+ */
 const goBack = () => {
   router.push('/')
 }
 
-// 打开相册
-// 打开图片选择器
+/**
+ * 打开图片选择器（相册）
+ */
 const openGallery = () => {
   if (fileInput.value) {
     fileInput.value.click()
   }
 }
 
-// 处理选中的图片
+/**
+ * 处理选中的图片
+ * 从文件选择器获取图片，加载后切换到图片处理模式
+ * @param {Event} event - 文件选择事件
+ */
 const onImageSelected = async (event) => {
   const file = event.target.files[0]
   if (!file) return
@@ -739,12 +870,12 @@ const onImageSelected = async (event) => {
   }
 
   try {
-    // 停止相机
+    // 停止相机（切换到图片模式）
     if (isActive.value) {
       stopCamera()
     }
 
-    // 加载图片
+    // 使用 FileReader 读取图片文件
     const reader = new FileReader()
     reader.onload = async (e) => {
       try {
@@ -755,10 +886,10 @@ const onImageSelected = async (event) => {
           currentImage = file
           imageElement = img
 
-          // 注意：画布尺寸会在processImage中根据处理后的图像尺寸自动调整
+          // 注意：画布尺寸会在 processImage 中根据处理后的图像尺寸自动调整
           // 这里不需要预先设置画布尺寸
 
-          // 处理图片（processImage会自动调整画布尺寸以匹配处理后的图像）
+          // 处理图片（processImage 会自动调整画布尺寸以匹配处理后的图像）
           await processImage()
 
           statusMessage.value = '图片加载成功'
@@ -786,13 +917,17 @@ const onImageSelected = async (event) => {
     setTimeout(() => { statusMessage.value = '' }, 2000)
   }
 
-  // 清空input，允许重复选择同一文件
+  // 清空 input，允许重复选择同一文件
   if (fileInput.value) {
     fileInput.value.value = ''
   }
 }
 
-// 处理图片（图片模式）
+/**
+ * 处理图片（图片模式）
+ * 使用美颜引擎处理图片并显示到画布
+ * 注意：图片处理不需要镜像，保持原始方向
+ */
 const processImage = async () => {
   if (!engine || !imageElement || !displayCanvas.value) {
     return
@@ -807,24 +942,24 @@ const processImage = async () => {
     ctx.drawImage(imageElement, 0, 0)
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
-    // 使用Image处理模式处理图片
+    // 使用 Image 处理模式处理图片
     const processed = engine.processImage(imageData, canvas.width, canvas.height, ProcessMode.Image)
 
     if (processed && displayCanvas.value) {
       const canvas = displayCanvas.value
       
-      // 画布的实际尺寸应该匹配处理后的图像尺寸（确保完整显示）
+      // 调整画布尺寸以匹配处理后的图像尺寸
       if (canvas.width !== processed.width || canvas.height !== processed.height) {
         canvas.width = processed.width
         canvas.height = processed.height
         displayCtx = canvas.getContext('2d')
       }
       
-      // 绘制到画布
+      // 绘制到画布（图片不需要镜像，保持原始方向）
       displayCtx.putImageData(processed, 0, 0)
       lastProcessedFrame = processed
       
-      // 设置CSS样式以实现等比缩放适应容器（保持宽高比，完整显示）
+      // 设置 CSS 样式以实现等比缩放适应容器（保持宽高比，完整显示）
       const container = canvas.parentElement
       if (container) {
         const maxWidth = Math.min(container.clientWidth, 1200)
@@ -853,27 +988,37 @@ const processImage = async () => {
   }
 }
 
-// 停止相机
+// ==================== 相机控制 ====================
+/**
+ * 停止相机
+ * 停止视频流并清理相关资源
+ */
 const stopCamera = () => {
   isActive.value = false
 
+  // 取消动画帧
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
     animationFrameId = null
   }
 
+  // 停止所有视频轨道
   if (videoStream) {
     videoStream.getTracks().forEach(track => track.stop())
     videoStream = null
   }
 
+  // 清理视频元素
   if (videoElement) {
     videoElement.srcObject = null
     videoElement = null
   }
 }
 
-// 切换摄像头
+/**
+ * 切换摄像头（前后摄像头切换）
+ * 仅在移动设备上支持
+ */
 const flipCamera = async () => {
   // 桌面端不支持切换摄像头
   if (!isMobileDevice.value) {
@@ -881,20 +1026,20 @@ const flipCamera = async () => {
   }
 
   try {
-    // 停止当前流
+    // 停止当前视频流
     if (videoStream) {
       videoStream.getTracks().forEach(track => track.stop())
     }
 
-    // 切换摄像头
+    // 获取当前摄像头方向并切换
+    const currentFacingMode = videoElement?.srcObject?.getVideoTracks()[0]?.getSettings().facingMode
     const constraints = {
       video: {
-        facingMode: videoElement?.srcObject?.getVideoTracks()[0]?.getSettings().facingMode === 'user' 
-          ? 'environment' 
-          : 'user'
+        facingMode: currentFacingMode === 'user' ? 'environment' : 'user'
       }
     }
 
+    // 获取新的视频流
     videoStream = await navigator.mediaDevices.getUserMedia(constraints)
     videoElement.srcObject = videoStream
     await videoElement.play()
@@ -904,22 +1049,28 @@ const flipCamera = async () => {
   }
 }
 
-// 更多选项
+/**
+ * 更多选项（暂未实现）
+ */
 const toggleMore = () => {
   alert('更多选项功能开发中')
 }
 
-// 保存当前所有美颜参数
+// ==================== 前后对比功能 ====================
+/**
+ * 保存当前所有美颜参数
+ * 用于前后对比功能，保存当前状态以便恢复
+ */
 const saveCurrentBeautyParams = () => {
   if (!beautyPanelRef.value) return
   
-  // 从BeautyPanel组件获取所有功能的进度值
+  // 从 BeautyPanel 组件获取所有功能的进度值
   const beautyParams = {
     beauty: {},
     reshape: {}
   }
   
-  // 获取美颜参数（0-100的值，需要转换为0.0-1.0）
+  // 获取美颜参数（0-100 的值，转换为 0.0-1.0）
   const whiteValue = beautyPanelRef.value.getSliderValue('beauty', 'white') || 0
   const smoothValue = beautyPanelRef.value.getSliderValue('beauty', 'smooth') || 0
   const rosinessValue = beautyPanelRef.value.getSliderValue('beauty', 'rosiness') || 0
@@ -938,7 +1089,10 @@ const saveCurrentBeautyParams = () => {
   savedBeautyParams.value = beautyParams
 }
 
-// 恢复保存的美颜参数
+/**
+ * 恢复保存的美颜参数
+ * 用于前后对比功能，恢复之前保存的状态
+ */
 const restoreBeautyParams = () => {
   const params = savedBeautyParams.value
   
@@ -947,7 +1101,7 @@ const restoreBeautyParams = () => {
     if (params.beauty.white !== undefined) {
       const value = params.beauty.white
       applyBeautyParam('beauty', 'white', value)
-      // 更新BeautyPanel的进度值（0.0-1.0转换为0-100）
+      // 同步更新 BeautyPanel 的进度值（0.0-1.0 转换为 0-100）
       if (beautyPanelRef.value) {
         beautyPanelRef.value.updateSliderValue('beauty', 'white', Math.round(value * 100))
       }
@@ -983,7 +1137,10 @@ const restoreBeautyParams = () => {
   }
 }
 
-// 对比按钮按下
+/**
+ * 前后对比按钮按下事件
+ * 保存当前参数并关闭所有美颜效果
+ */
 const onBeforeAfterPress = () => {
   if (isBeforeAfterPressed.value) return
   
@@ -992,11 +1149,14 @@ const onBeforeAfterPress = () => {
   // 保存当前美颜参数
   saveCurrentBeautyParams()
   
-  // 关闭所有美颜效果
+  // 关闭所有美颜效果（显示原始效果）
   resetAllParams()
 }
 
-// 对比按钮松开
+/**
+ * 前后对比按钮松开事件
+ * 恢复之前保存的美颜参数
+ */
 const onBeforeAfterRelease = () => {
   if (!isBeforeAfterPressed.value) return
   
@@ -1006,7 +1166,12 @@ const onBeforeAfterRelease = () => {
   restoreBeautyParams()
 }
 
-// 拍照
+// ==================== 拍照功能 ====================
+/**
+ * 拍照并保存
+ * 相机模式：保存镜像图片（与预览一致）
+ * 图片模式：保存正常方向的图片
+ */
 const capturePhoto = async () => {
   if (!displayCanvas.value || !displayCtx) {
     statusMessage.value = '画布未初始化'
@@ -1015,10 +1180,15 @@ const capturePhoto = async () => {
   }
 
   try {
-    // 直接从显示画布获取当前美颜处理后的图像
-    const canvas = displayCanvas.value
-    const width = canvas.width
-    const height = canvas.height
+    // 使用处理后的原始图像数据
+    if (!lastProcessedFrame) {
+      statusMessage.value = '没有可保存的图像'
+      setTimeout(() => { statusMessage.value = '' }, 2000)
+      return
+    }
+
+    const width = lastProcessedFrame.width
+    const height = lastProcessedFrame.height
 
     if (width === 0 || height === 0) {
       statusMessage.value = '画布尺寸无效'
@@ -1026,16 +1196,34 @@ const capturePhoto = async () => {
       return
     }
 
-    // 创建临时canvas用于导出
+    // 创建临时 canvas 用于导出
     const exportCanvas = document.createElement('canvas')
     exportCanvas.width = width
     exportCanvas.height = height
     const exportCtx = exportCanvas.getContext('2d')
     
-    // 将显示画布的内容绘制到导出画布
-    exportCtx.drawImage(canvas, 0, 0)
+    // 根据模式决定是否镜像
+    if (isImageMode.value) {
+      // 图片模式：保存正常方向的图片（不需要镜像）
+      exportCtx.putImageData(lastProcessedFrame, 0, 0)
+    } else {
+      // 相机模式：保存镜像图片（与预览一致）
+      // 创建临时 canvas 用于镜像
+      const tempCanvas = document.createElement('canvas')
+      tempCanvas.width = width
+      tempCanvas.height = height
+      const tempCtx = tempCanvas.getContext('2d')
+      tempCtx.putImageData(lastProcessedFrame, 0, 0)
+      
+      // 应用水平翻转变换（镜像）
+      exportCtx.save()
+      exportCtx.scale(-1, 1)
+      exportCtx.translate(-width, 0)
+      exportCtx.drawImage(tempCanvas, 0, 0)
+      exportCtx.restore()
+    }
 
-    // 转换为blob并下载
+    // 转换为 blob 并下载
     exportCanvas.toBlob((blob) => {
       if (!blob) {
         statusMessage.value = '保存失败'
@@ -1043,6 +1231,7 @@ const capturePhoto = async () => {
         return
       }
 
+      // 创建下载链接
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -1062,30 +1251,39 @@ const capturePhoto = async () => {
   }
 }
 
-// 清理资源
+// ==================== 资源清理 ====================
+/**
+ * 清理所有资源
+ * 在组件卸载时调用，释放相机、引擎等资源
+ */
 const cleanup = () => {
   isActive.value = false
 
+  // 清理定时器
   if (sliderValueTimer) {
     clearTimeout(sliderValueTimer)
     sliderValueTimer = null
   }
 
+  // 取消动画帧
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
     animationFrameId = null
   }
 
+  // 停止视频流
   if (videoStream) {
     videoStream.getTracks().forEach(track => track.stop())
     videoStream = null
   }
 
+  // 销毁引擎
   if (engine) {
     engine.destroy()
     engine = null
   }
 
+  // 清理其他引用
   videoElement = null
   lastProcessedFrame = null
 }

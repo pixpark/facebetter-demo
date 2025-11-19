@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from '../views/Home'
-import CameraPreview from '../views/CameraPreview'
+import BeautyPreview from '../views/BeautyPreview'
 
 function Router() {
   return (
@@ -8,7 +8,7 @@ function Router() {
       <Route path="/" element={<Home />} />
       <Route 
         path="/camera" 
-        element={<CameraPreview />}
+        element={<BeautyPreview />}
       />
     </Routes>
   )
