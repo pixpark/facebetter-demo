@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface GLRGBARenderView : UIView
 
-- (void)renderBuffer:(FBImageBuffer *)buffer;
+- (void)renderFrame:(FBImageFrame *)frame;
 
 // 设置是否水平镜像（默认 NO）
 - (void)setMirrored:(BOOL)mirrored;

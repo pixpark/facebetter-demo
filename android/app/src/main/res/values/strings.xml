@@ -20,6 +20,7 @@
     <string name="face_detection">人脸检测</string>
     <string name="green_screen_keying">绿幕抠图</string>
     <string name="gesture_detection">手势检测</string>
+    <string name="external_texture">外部纹理</string>
     <string name="feature_icon">功能图标</string>
     <string name="header_image">顶部头部图片</string>
 </resources>

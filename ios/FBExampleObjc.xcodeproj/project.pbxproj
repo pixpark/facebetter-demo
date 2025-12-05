@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		842663E22ED8876C0016D46A /* ExternalTextureViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 842663E12ED8876C0016D46A /* ExternalTextureViewController.m */; };
+		842664172ED88AB60016D46A /* Facebetter.framework/Facebetter in Frameworks */ = {isa = PBXBuildFile; fileRef = 842663FF2ED88A9B0016D46A /* Facebetter.framework/Facebetter */; };
+		842664182ED88AB60016D46A /* Facebetter.framework/Facebetter in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 842663FF2ED88A9B0016D46A /* Facebetter.framework/Facebetter */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8426644D2EDA85D10016D46A /* GLTextureRenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8426644C2EDA85D10016D46A /* GLTextureRenderView.m */; };
+		842664692EDB29800016D46A /* demo.png in Resources */ = {isa = PBXBuildFile; fileRef = 842664572EDB29800016D46A /* demo.png */; };
 		844A23D62EB3630D005F3533 /* GLRGBARenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 844A23D52EB3630D005F3533 /* GLRGBARenderView.m */; };
-		844A240D2EB39C63005F3533 /* Facebetter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 844A240B2EB39C5D005F3533 /* Facebetter.framework */; };
-		844A240E2EB39C63005F3533 /* Facebetter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 844A240B2EB39C5D005F3533 /* Facebetter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		846E18DD2E6EDF8A00D3B53C /* BeautyPanelViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 846E18D02E6EDF8A00D3B53C /* BeautyPanelViewController.m */; };
 		84DCA0762E372964008E8A26 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DCA0752E372964008E8A26 /* AppDelegate.m */; };
 		84DCA0792E372964008E8A26 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DCA0782E372964008E8A26 /* SceneDelegate.m */; };
@@ -56,17 +59,110 @@
 		84ECE54C2EBA09060062EBE0 /* shoushi.png in Resources */ = {isa = PBXBuildFile; fileRef = 84ECE5282EBA09060062EBE0 /* shoushi.png */; };
 		84ECE54D2EBA09060062EBE0 /* meixing2.png in Resources */ = {isa = PBXBuildFile; fileRef = 84ECE5292EBA09060062EBE0 /* meixing2.png */; };
 		84ECE54E2EBA09060062EBE0 /* meizhuang2.png in Resources */ = {isa = PBXBuildFile; fileRef = 84ECE52A2EBA09060062EBE0 /* meizhuang2.png */; };
-		84ECE5542EBB2DDB0062EBE0 /* back_mobile.png in Resources */ = {isa = PBXBuildFile; fileRef = 84ECE5532EBB2DDB0062EBE0 /* back_mobile.png */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		842663FC2ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D0F214F86D3454E8BB2F9C4;
+			remoteInfo = crypto;
+		};
+		842663FE2ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A503CA6319164E23B4428432;
+			remoteInfo = facebetter;
+		};
+		842664002ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D893A0973A8148AAA4669D46;
+			remoteInfo = gmock;
+		};
+		842664022ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5E3224E8C6C0437C9D6F2998;
+			remoteInfo = gmock_main;
+		};
+		842664042ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2C9C55A33B0241FB88548A10;
+			remoteInfo = gpupixel;
+		};
+		842664062ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 079DAA60047D491CA452307B;
+			remoteInfo = gtest;
+		};
+		842664082ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4138039E984C4B338D6FF9E0;
+			remoteInfo = gtest_main;
+		};
+		8426640A2ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0EEA7FAABE13457DB475183F;
+			remoteInfo = mars_vision;
+		};
+		8426640C2ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B9CDF430245748EF8B39F7E5;
+			remoteInfo = spdlog;
+		};
+		8426640E2ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DE54AAD5B93F4C9AB9672686;
+			remoteInfo = ssl;
+		};
+		842664102ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 08EB057631BE43DF995B0A1F;
+			remoteInfo = yuv;
+		};
+		842664122ED88A9B0016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D82A0449F5E74CEDB7D47D4E;
+			remoteInfo = zip;
+		};
+		842664142ED88AA60016D46A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = FC54606FD8D885504C798994;
+			remoteInfo = facebetter;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		844A23FE2EB36609005F3533 /* Embed Frameworks */ = {
+		842664192ED88AB60016D46A /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				844A240E2EB39C63005F3533 /* Facebetter.framework in Embed Frameworks */,
+				842664182ED88AB60016D46A /* Facebetter.framework/Facebetter in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -74,6 +170,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		842663E02ED8876C0016D46A /* ExternalTextureViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExternalTextureViewController.h; sourceTree = "<group>"; };
+		842663E12ED8876C0016D46A /* ExternalTextureViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ExternalTextureViewController.m; sourceTree = "<group>"; };
+		842663E32ED88A9B0016D46A /* fb.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fb.xcodeproj; path = ../../build/ios/fb.xcodeproj; sourceTree = "<group>"; };
+		8426643A2EDA85D10016D46A /* GLTextureRenderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLTextureRenderView.h; sourceTree = "<group>"; };
+		8426644C2EDA85D10016D46A /* GLTextureRenderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLTextureRenderView.m; sourceTree = "<group>"; };
+		842664572EDB29800016D46A /* demo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = demo.png; path = FBExampleObjc/Icon/demo.png; sourceTree = "<group>"; };
 		844A23C72EB3630D005F3533 /* GLRGBARenderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLRGBARenderView.h; sourceTree = "<group>"; };
 		844A23D52EB3630D005F3533 /* GLRGBARenderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLRGBARenderView.m; sourceTree = "<group>"; };
 		844A240B2EB39C5D005F3533 /* Facebetter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Facebetter.framework; path = FBExampleObjc/libs/Facebetter.framework; sourceTree = "<group>"; };
@@ -131,7 +233,6 @@
 		84ECE5282EBA09060062EBE0 /* shoushi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = shoushi.png; path = FBExampleObjc/Icon/shoushi.png; sourceTree = "<group>"; };
 		84ECE5292EBA09060062EBE0 /* meixing2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = meixing2.png; path = FBExampleObjc/Icon/meixing2.png; sourceTree = "<group>"; };
 		84ECE52A2EBA09060062EBE0 /* meizhuang2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = meizhuang2.png; path = FBExampleObjc/Icon/meizhuang2.png; sourceTree = "<group>"; };
-		84ECE5532EBB2DDB0062EBE0 /* back_mobile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = back_mobile.png; path = FBExampleObjc/Icon/back_mobile.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,16 +240,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				844A240D2EB39C63005F3533 /* Facebetter.framework in Frameworks */,
+				842664172ED88AB60016D46A /* Facebetter.framework/Facebetter in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		842663E42ED88A9B0016D46A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				842663FD2ED88A9B0016D46A /* libcrypto.a */,
+				842663FF2ED88A9B0016D46A /* Facebetter.framework/Facebetter */,
+				842664012ED88A9B0016D46A /* libgmock.a */,
+				842664032ED88A9B0016D46A /* libgmock_main.a */,
+				842664052ED88A9B0016D46A /* libgpupixel.a */,
+				842664072ED88A9B0016D46A /* libgtest.a */,
+				842664092ED88A9B0016D46A /* libgtest_main.a */,
+				8426640B2ED88A9B0016D46A /* libmars_vision.a */,
+				8426640D2ED88A9B0016D46A /* libspdlogd.a */,
+				8426640F2ED88A9B0016D46A /* libssl.a */,
+				842664112ED88A9B0016D46A /* libyuv.a */,
+				842664132ED88A9B0016D46A /* libzip.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		84DCA0682E372964008E8A26 = {
 			isa = PBXGroup;
 			children = (
+				842663E32ED88A9B0016D46A /* fb.xcodeproj */,
 				84DCA0732E372964008E8A26 /* FBExampleObjc */,
 				84ECE54F2EBA090A0062EBE0 /* Icons */,
 				84DCA0722E372964008E8A26 /* Products */,
@@ -177,10 +298,14 @@
 				84ECE4BB2EB9FE400062EBE0 /* HomeViewController.m */,
 				84DCA0AE2E372CE8008E8A26 /* CameraManager.h */,
 				84DCA0AD2E372CE8008E8A26 /* CameraManager.m */,
+				842663E02ED8876C0016D46A /* ExternalTextureViewController.h */,
+				842663E12ED8876C0016D46A /* ExternalTextureViewController.m */,
 				846E18DC2E6EDF8A00D3B53C /* BeautyPanelViewController.h */,
 				846E18D02E6EDF8A00D3B53C /* BeautyPanelViewController.m */,
 				844A23C72EB3630D005F3533 /* GLRGBARenderView.h */,
 				844A23D52EB3630D005F3533 /* GLRGBARenderView.m */,
+				8426643A2EDA85D10016D46A /* GLTextureRenderView.h */,
+				8426644C2EDA85D10016D46A /* GLTextureRenderView.m */,
 				84DCA07D2E372964008E8A26 /* Main.storyboard */,
 				84DCA0802E372966008E8A26 /* Assets.xcassets */,
 				84DCA0822E372966008E8A26 /* LaunchScreen.storyboard */,
@@ -201,7 +326,6 @@
 		84ECE54F2EBA090A0062EBE0 /* Icons */ = {
 			isa = PBXGroup;
 			children = (
-				84ECE5532EBB2DDB0062EBE0 /* back_mobile.png */,
 				84ECE5142EBA09050062EBE0 /* back_preset.png */,
 				84ECE5122EBA09050062EBE0 /* beautycard2.png */,
 				84ECE5152EBA09050062EBE0 /* beautycard3.png */,
@@ -230,6 +354,7 @@
 				84ECE5232EBA09050062EBE0 /* menu.png */,
 				84ECE5102EBA09050062EBE0 /* more.png */,
 				84ECE51E2EBA09050062EBE0 /* renlianjiance.png */,
+				842664572EDB29800016D46A /* demo.png */,
 				84ECE5132EBA09050062EBE0 /* reset.png */,
 				84ECE5162EBA09050062EBE0 /* setting.png */,
 				84ECE5282EBA09060062EBE0 /* shoushi.png */,
@@ -252,11 +377,12 @@
 				84DCA06D2E372964008E8A26 /* Sources */,
 				84DCA06E2E372964008E8A26 /* Frameworks */,
 				84DCA06F2E372964008E8A26 /* Resources */,
-				844A23FE2EB36609005F3533 /* Embed Frameworks */,
+				842664192ED88AB60016D46A /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				842664152ED88AA60016D46A /* PBXTargetDependency */,
 			);
 			name = FBExampleObjc;
 			productName = FBExampleObjc;
@@ -288,12 +414,106 @@
 			mainGroup = 84DCA0682E372964008E8A26;
 			productRefGroup = 84DCA0722E372964008E8A26 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 842663E42ED88A9B0016D46A /* Products */;
+					ProjectRef = 842663E32ED88A9B0016D46A /* fb.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				84DCA0702E372964008E8A26 /* FBExampleObjc */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		842663FD2ED88A9B0016D46A /* libcrypto.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcrypto.a;
+			remoteRef = 842663FC2ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842663FF2ED88A9B0016D46A /* Facebetter.framework/Facebetter */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			name = Facebetter.framework/Facebetter;
+			path = Facebetter.framework;
+			remoteRef = 842663FE2ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664012ED88A9B0016D46A /* libgmock.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgmock.a;
+			remoteRef = 842664002ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664032ED88A9B0016D46A /* libgmock_main.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgmock_main.a;
+			remoteRef = 842664022ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664052ED88A9B0016D46A /* libgpupixel.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgpupixel.a;
+			remoteRef = 842664042ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664072ED88A9B0016D46A /* libgtest.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgtest.a;
+			remoteRef = 842664062ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664092ED88A9B0016D46A /* libgtest_main.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgtest_main.a;
+			remoteRef = 842664082ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8426640B2ED88A9B0016D46A /* libmars_vision.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libmars_vision.a;
+			remoteRef = 8426640A2ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8426640D2ED88A9B0016D46A /* libspdlogd.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libspdlogd.a;
+			remoteRef = 8426640C2ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8426640F2ED88A9B0016D46A /* libssl.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libssl.a;
+			remoteRef = 8426640E2ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664112ED88A9B0016D46A /* libyuv.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libyuv.a;
+			remoteRef = 842664102ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		842664132ED88A9B0016D46A /* libzip.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libzip.a;
+			remoteRef = 842664122ED88A9B0016D46A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		84DCA06F2E372964008E8A26 /* Resources */ = {
@@ -316,9 +536,9 @@
 				84ECE5352EBA09060062EBE0 /* camera3.png in Resources */,
 				84ECE5362EBA09060062EBE0 /* beautycard2.png in Resources */,
 				84ECE5372EBA09060062EBE0 /* reset.png in Resources */,
+				842664692EDB29800016D46A /* demo.png in Resources */,
 				84ECE5382EBA09060062EBE0 /* back_preset.png in Resources */,
 				84ECE5392EBA09060062EBE0 /* beautycard3.png in Resources */,
-				84ECE5542EBB2DDB0062EBE0 /* back_mobile.png in Resources */,
 				84ECE53A2EBA09060062EBE0 /* setting.png in Resources */,
 				84ECE53B2EBA09060062EBE0 /* xunibeijing.png in Resources */,
 				84ECE53C2EBA09060062EBE0 /* before_after.png in Resources */,
@@ -356,12 +576,22 @@
 				844A23D62EB3630D005F3533 /* GLRGBARenderView.m in Sources */,
 				84DCA0792E372964008E8A26 /* SceneDelegate.m in Sources */,
 				84ECE4BC2EB9FE400062EBE0 /* CameraViewController.m in Sources */,
+				842663E22ED8876C0016D46A /* ExternalTextureViewController.m in Sources */,
+				8426644D2EDA85D10016D46A /* GLTextureRenderView.m in Sources */,
 				84DCA0AF2E372CE8008E8A26 /* CameraManager.m in Sources */,
 				84ECE4BD2EB9FE400062EBE0 /* HomeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		842664152ED88AA60016D46A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = facebetter;
+			targetProxy = 842664142ED88AA60016D46A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		84DCA07D2E372964008E8A26 /* Main.storyboard */ = {

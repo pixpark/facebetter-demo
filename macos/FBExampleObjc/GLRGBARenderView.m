@@ -41,13 +41,14 @@
 @implementation GLRGBARenderView
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
-  NSOpenGLPixelFormatAttribute attrs[] = {
-    NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
-    NSOpenGLPFAColorSize, (NSOpenGLPixelFormatAttribute)24,
-    NSOpenGLPFAAlphaSize, (NSOpenGLPixelFormatAttribute)8,
-    NSOpenGLPFADoubleBuffer,
-    0
-  };
+  NSOpenGLPixelFormatAttribute attrs[] = {NSOpenGLPFAOpenGLProfile,
+                                          NSOpenGLProfileVersion3_2Core,
+                                          NSOpenGLPFAColorSize,
+                                          (NSOpenGLPixelFormatAttribute)24,
+                                          NSOpenGLPFAAlphaSize,
+                                          (NSOpenGLPixelFormatAttribute)8,
+                                          NSOpenGLPFADoubleBuffer,
+                                          0};
   NSOpenGLPixelFormat *pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
   if (self = [super initWithFrame:frameRect pixelFormat:pf]) {
     // 在 Retina 下使用最佳分辨率表面，避免视口只占用点坐标（导致显示在左下角）
@@ -136,8 +137,12 @@
   GLuint s = glCreateShader(type);
   glShaderSource(s, 1, &src, NULL);
   glCompileShader(s);
-  GLint ok = 0; glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
-  if (!ok) { glDeleteShader(s); return 0; }
+  GLint ok = 0;
+  glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+  if (!ok) {
+    glDeleteShader(s);
+    return 0;
+  }
   return s;
 }
 
@@ -146,11 +151,17 @@
   GLuint f = [self compileShader:GL_FRAGMENT_SHADER source:fs];
   if (!v || !f) return 0;
   GLuint p = glCreateProgram();
-  glAttachShader(p, v); glAttachShader(p, f);
+  glAttachShader(p, v);
+  glAttachShader(p, f);
   glLinkProgram(p);
-  glDeleteShader(v); glDeleteShader(f);
-  GLint ok = 0; glGetProgramiv(p, GL_LINK_STATUS, &ok);
-  if (!ok) { glDeleteProgram(p); return 0; }
+  glDeleteShader(v);
+  glDeleteShader(f);
+  GLint ok = 0;
+  glGetProgramiv(p, GL_LINK_STATUS, &ok);
+  if (!ok) {
+    glDeleteProgram(p);
+    return 0;
+  }
   return p;
 }
 
@@ -171,16 +182,24 @@
   }
 
   float vertices[] = {
-    -sx, -sy,
-     sx, -sy,
-    -sx,  sy,
-     sx,  sy,
+      -sx,
+      -sy,
+      sx,
+      -sy,
+      -sx,
+      sy,
+      sx,
+      sy,
   };
   float tex[] = {
-    _mirrored ? 1.0f : 0.0f, 1.0f,
-    _mirrored ? 0.0f : 1.0f, 1.0f,
-    _mirrored ? 1.0f : 0.0f, 0.0f,
-    _mirrored ? 0.0f : 1.0f, 0.0f,
+      _mirrored ? 1.0f : 0.0f,
+      1.0f,
+      _mirrored ? 0.0f : 1.0f,
+      1.0f,
+      _mirrored ? 1.0f : 0.0f,
+      0.0f,
+      _mirrored ? 0.0f : 1.0f,
+      0.0f,
   };
 
   glBindVertexArray(_vao);
@@ -256,7 +275,10 @@
   [_bufferLock lock];
   buffer = _currentBuffer;
   [_bufferLock unlock];
-  if (!buffer) { [[self openGLContext] flushBuffer]; return; }
+  if (!buffer) {
+    [[self openGLContext] flushBuffer];
+    return;
+  }
 
   [self updateVertices];
   [self updateTexture:buffer];
@@ -273,5 +295,3 @@
 }
 
 @end
-
-

@@ -1,19 +1,18 @@
 #import "CameraManager.h"
-#import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
+#import <UIKit/UIKit.h>
 
 #pragma mark -
 #pragma mark Private methods and instance variables
 
 @interface CameraManager () {
   NSInteger frameRate;
-  NSString* _sessionPreset; // 添加sessionPreset的实例变量
+  NSString* _sessionPreset;  // 添加sessionPreset的实例变量
 }
 
 @end
 
 @implementation CameraManager
-
 
 #pragma mark -
 #pragma mark Initialization and teardown
@@ -35,19 +34,19 @@
   return [self initWithSessionPreset:AVCaptureSessionPreset1280x720 cameraDevice:device];
 }
 
-- (instancetype)initWithSessionPreset:(NSString*)sessionPreset 
-                          cameraDevice:(AVCaptureDevice*)cameraDevice {
+- (instancetype)initWithSessionPreset:(NSString*)sessionPreset
+                         cameraDevice:(AVCaptureDevice*)cameraDevice {
   if (!(self = [super init])) {
     return nil;
   }
 
   // Initialize processing queue
   processingQueue = dispatch_queue_create("com.cameramanager.processing", NULL);
-  
+
   // Initialize state
   frameRate = 0;
   isPaused = NO;
-  
+
   // 监听设备方向变化
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(deviceOrientationDidChange:)
@@ -92,20 +91,19 @@
   videoOutput = [[AVCaptureVideoDataOutput alloc] init];
   // 丢弃迟到帧，避免处理旧帧造成可见延迟
   [videoOutput setAlwaysDiscardsLateVideoFrames:YES];
-  [videoOutput setVideoSettings:@{
-    (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
-  }];
+  [videoOutput
+      setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA)}];
 
   [videoOutput setSampleBufferDelegate:self queue:processingQueue];
   if ([captureSession canAddOutput:videoOutput]) {
     [captureSession addOutput:videoOutput];
-    
+
     // 设置视频方向为竖屏
-    AVCaptureConnection *connection = [videoOutput connectionWithMediaType:AVMediaTypeVideo];
+    AVCaptureConnection* connection = [videoOutput connectionWithMediaType:AVMediaTypeVideo];
     if ([connection isVideoOrientationSupported]) {
       [connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
     }
-    
+
     // 设置视频镜像（前置摄像头需要镜像）
     if ([connection isVideoMirroringSupported]) {
       BOOL shouldMirror = (inputCamera.position == AVCaptureDevicePositionFront);
@@ -119,7 +117,7 @@
   // Set session preset
   self.sessionPreset = sessionPreset;
   [captureSession setSessionPreset:sessionPreset];
-  
+
   // 设置 30fps 采集（使用连接层最小帧间隔）
   [self setFrameRate:30];
   [captureSession commitConfiguration];
@@ -130,7 +128,7 @@
 - (void)dealloc {
   // 移除通知监听
   [[NSNotificationCenter defaultCenter] removeObserver:self];
-  
+
   [self stopCapture];
   [videoOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
 }
@@ -164,8 +162,9 @@
   }
 
   AVCaptureDevicePosition currentPosition = [[videoInput device] position];
-  AVCaptureDevicePosition newPosition = (currentPosition == AVCaptureDevicePositionBack) ? 
-                                        AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
+  AVCaptureDevicePosition newPosition = (currentPosition == AVCaptureDevicePositionBack) ?
+      AVCaptureDevicePositionFront :
+      AVCaptureDevicePositionBack;
 
   AVCaptureDevice* newCamera = nil;
   NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
@@ -178,23 +177,24 @@
 
   if (newCamera) {
     NSError* error;
-    AVCaptureDeviceInput* newVideoInput = [[AVCaptureDeviceInput alloc] initWithDevice:newCamera error:&error];
-    
+    AVCaptureDeviceInput* newVideoInput = [[AVCaptureDeviceInput alloc] initWithDevice:newCamera
+                                                                                 error:&error];
+
     if (newVideoInput) {
       [captureSession beginConfiguration];
       [captureSession removeInput:videoInput];
-      
+
       if ([captureSession canAddInput:newVideoInput]) {
         [captureSession addInput:newVideoInput];
         videoInput = newVideoInput;
         inputCamera = newCamera;
-        
+
         // 重新设置视频方向和镜像
-        AVCaptureConnection *connection = [videoOutput connectionWithMediaType:AVMediaTypeVideo];
+        AVCaptureConnection* connection = [videoOutput connectionWithMediaType:AVMediaTypeVideo];
         if ([connection isVideoOrientationSupported]) {
           [connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
         }
-        
+
         // 前置摄像头需要镜像，后置摄像头不需要
         if ([connection isVideoMirroringSupported]) {
           BOOL shouldMirror = (newCamera.position == AVCaptureDevicePositionFront);
@@ -203,7 +203,7 @@
       } else {
         [captureSession addInput:videoInput];
       }
-      
+
       [captureSession commitConfiguration];
     }
   }
@@ -225,7 +225,7 @@
 
 - (void)setSessionPreset:(NSString*)newSessionPreset {
   [captureSession beginConfiguration];
-  _sessionPreset = newSessionPreset; // 直接设置backing变量
+  _sessionPreset = newSessionPreset;  // 直接设置backing变量
   [captureSession setSessionPreset:_sessionPreset];
   [captureSession commitConfiguration];
 }
@@ -278,10 +278,10 @@
 
 #pragma mark - Device Orientation
 
-- (void)deviceOrientationDidChange:(NSNotification *)notification {
+- (void)deviceOrientationDidChange:(NSNotification*)notification {
   UIDeviceOrientation orientation = [UIDevice currentDevice].orientation;
   AVCaptureVideoOrientation videoOrientation;
-  
+
   switch (orientation) {
     case UIDeviceOrientationPortrait:
       videoOrientation = AVCaptureVideoOrientationPortrait;
@@ -299,10 +299,10 @@
       videoOrientation = AVCaptureVideoOrientationPortrait;
       break;
   }
-  
+
   [self updateVideoOrientation:videoOrientation];
 }
- 
+
 #pragma mark -
 #pragma mark AVCaptureVideoDataOutputSampleBufferDelegate
 

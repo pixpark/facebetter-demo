@@ -5,14 +5,14 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
-import com.pixpark.facebetter.ImageBuffer;
+import com.pixpark.facebetter.ImageFrame;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Renderer {
+public class GLBufferRenderer extends GLSurfaceView implements GLSurfaceView.Renderer {
   private static final String TAG = "GLVideoRenderer";
 
   // Vertex shader for rendering YUV to RGB
@@ -56,7 +56,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
   private FloatBuffer mVertexBuffer;
   private FloatBuffer mTexCoordBuffer;
 
-  private ImageBuffer mCurrentImageBuffer;
+  private ImageFrame mCurrentImageFrame;
   private final Object mFrameLock = new Object();
 
   // Video dimensions and viewport dimensions for aspect ratio calculation
@@ -105,12 +105,12 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
       0.0f,
   };
 
-  public GLVideoRenderer(Context context) {
+  public GLBufferRenderer(Context context) {
     super(context);
     init();
   }
 
-  public GLVideoRenderer(Context context, AttributeSet attrs) {
+  public GLBufferRenderer(Context context, AttributeSet attrs) {
     super(context, attrs);
     init();
   }
@@ -173,7 +173,8 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
    * 设置是否进行左右镜像渲染（水平翻转）。
    */
   public void setMirror(boolean mirror) {
-    if (mMirrorHorizontal == mirror) return;
+    if (mMirrorHorizontal == mirror)
+      return;
     mMirrorHorizontal = mirror;
 
     // 更新纹理坐标缓冲
@@ -215,7 +216,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     }
 
     synchronized (mFrameLock) {
-      if (mCurrentImageBuffer == null) {
+      if (mCurrentImageFrame == null) {
         return;
       }
 
@@ -223,8 +224,11 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
       GLES20.glUseProgram(mProgram);
 
       // Update textures with current frame data
-      updateTextures(mCurrentImageBuffer);
-      mCurrentImageBuffer.release();
+      updateTextures(mCurrentImageFrame);
+      // Release frame after uploading to GPU textures
+      // The texture data is already on GPU, so it's safe to release the frame
+      mCurrentImageFrame.release();
+      mCurrentImageFrame = null;
 
       // Set vertex attributes
       GLES20.glEnableVertexAttribArray(mPositionHandle);
@@ -255,15 +259,19 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     }
   }
 
-  public void renderBuffer(ImageBuffer buffer) {
+  public void renderFrame(ImageFrame frame) {
     synchronized (mFrameLock) {
-      mCurrentImageBuffer = buffer;
+      // If there's an old frame that hasn't been rendered yet, release it
+      // This prevents memory leaks when frames arrive faster than they can be rendered
+      if (mCurrentImageFrame != null && mCurrentImageFrame != frame) {
+        mCurrentImageFrame.release();
+      }
+      mCurrentImageFrame = frame;
 
       // Update video dimensions if they have changed
-      if (buffer != null
-          && (mVideoWidth != buffer.getWidth() || mVideoHeight != buffer.getHeight())) {
-        mVideoWidth = buffer.getWidth();
-        mVideoHeight = buffer.getHeight();
+      if (frame != null && (mVideoWidth != frame.getWidth() || mVideoHeight != frame.getHeight())) {
+        mVideoWidth = frame.getWidth();
+        mVideoHeight = frame.getHeight();
         Log.d(TAG, "Video dimensions updated: " + mVideoWidth + "x" + mVideoHeight);
 
         // Update vertex coordinates based on new video aspect ratio
@@ -328,12 +336,12 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     mVertexBuffer.position(0);
   }
 
-  private void updateTextures(ImageBuffer buffer) {
-    int width = buffer.getWidth();
-    int height = buffer.getHeight();
-    int strideY = buffer.getStrideY();
-    int strideU = buffer.getStrideU();
-    int strideV = buffer.getStrideV();
+  private void updateTextures(ImageFrame frame) {
+    int width = frame.getWidth();
+    int height = frame.getHeight();
+    int strideY = frame.getStrideY();
+    int strideU = frame.getStrideU();
+    int strideV = frame.getStrideV();
 
     // Set pixel store alignment
     GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1);
@@ -341,7 +349,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     // Update Y texture - handle stride properly
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[0]);
-    ByteBuffer yBuffer = buffer.getDataY();
+    ByteBuffer yBuffer = frame.getDataY();
     if (yBuffer == null) {
       Log.w(TAG, "Y plane buffer is null, skip frame");
       return;
@@ -366,7 +374,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     // Update U texture - handle stride properly
     GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[1]);
-    ByteBuffer uBuffer = buffer.getDataU();
+    ByteBuffer uBuffer = frame.getDataU();
     if (uBuffer == null) {
       Log.w(TAG, "U plane buffer is null, skip frame");
       return;
@@ -394,7 +402,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
     // Update V texture - handle stride properly
     GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[2]);
-    ByteBuffer vBuffer = buffer.getDataV();
+    ByteBuffer vBuffer = frame.getDataV();
     if (vBuffer == null) {
       Log.w(TAG, "V plane buffer is null, skip frame");
       return;
@@ -472,7 +480,7 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
   }
 
   /**
-   * 手动设置视频尺寸（可选，通常由 renderBuffer 自动检测）
+   * 手动设置视频尺寸（可选，通常由 renderFrame 自动检测）
    * @param width 视频宽度
    * @param height 视频高度
    */
@@ -510,9 +518,9 @@ public class GLVideoRenderer extends GLSurfaceView implements GLSurfaceView.Rend
    */
   public void cleanup() {
     synchronized (mFrameLock) {
-      if (mCurrentImageBuffer != null) {
-        mCurrentImageBuffer.release();
-        mCurrentImageBuffer = null;
+      if (mCurrentImageFrame != null) {
+        mCurrentImageFrame.release();
+        mCurrentImageFrame = null;
       }
     }
     Log.d(TAG, "GLVideoRenderer cleanup completed");

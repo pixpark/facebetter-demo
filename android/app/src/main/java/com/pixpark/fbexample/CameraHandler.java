@@ -162,12 +162,12 @@ public class CameraHandler {
    */
   public void switchCamera() {
     // 切换方向
-    mCameraFacing =
-        (mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
-            ? CameraCharacteristics.LENS_FACING_BACK
-            : CameraCharacteristics.LENS_FACING_FRONT;
-    Log.d(TAG, "Switch camera, new facing = " +
-        (mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT ? "FRONT" : "BACK"));
+    mCameraFacing = (mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
+        ? CameraCharacteristics.LENS_FACING_BACK
+        : CameraCharacteristics.LENS_FACING_FRONT;
+    Log.d(TAG,
+        "Switch camera, new facing = "
+            + (mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT ? "FRONT" : "BACK"));
 
     // 重新打开相机
     // 确保后台线程已启动

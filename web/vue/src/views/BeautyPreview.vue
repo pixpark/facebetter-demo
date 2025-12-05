@@ -139,7 +139,7 @@ import {
   MakeupParam,
   BackgroundMode,
   VirtualBackgroundOptions,
-  ProcessMode 
+  FrameType 
 } from 'facebetter'
 
 // ==================== Props ====================
@@ -260,9 +260,20 @@ const initCanvas = () => {
  * 配置引擎参数并启用所需的美颜功能
  */
 const initEngine = async () => {
+  const appId = ''
+  const appKey = ''
+
+  // 验证 appId 和 appKey
+  if (!appId || !appKey || appId.trim() === '' || appKey.trim() === '') {
+    console.error('[Facebetter] Error: appId and appKey must be configured. Please set your appId and appKey in the code.')
+    statusMessage.value = '错误：请配置 appId 和 appKey'
+    setTimeout(() => { statusMessage.value = '' }, 3000)
+    return
+  }
+
   const config = new EngineConfig({
-    appId: '',
-    appKey: ''
+    appId: appId,
+    appKey: appKey
   })
 
   engine = new BeautyEffectEngine(config)
@@ -281,7 +292,6 @@ const initEngine = async () => {
   engine.setBeautyTypeEnabled(BeautyType.Basic, true)              // 基础美颜（磨皮、美白、红润）
   engine.setBeautyTypeEnabled(BeautyType.Reshape, true)             // 美型（瘦脸、大眼等）
   engine.setBeautyTypeEnabled(BeautyType.Makeup, true)             // 美妆（口红、腮红等）
-  engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)   // 虚拟背景
 
   statusMessage.value = '引擎初始化成功'
   setTimeout(() => { statusMessage.value = '' }, 2000)
@@ -296,9 +306,9 @@ const startCamera = async () => {
     // 获取用户媒体流（摄像头）
     videoStream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: 1280 },   // 理想宽度
-        height: { ideal: 720 },   // 理想高度
-        frameRate: { ideal: 30 }  // 理想帧率
+        width: { ideal: 640 },   // 理想宽度
+        height: { ideal: 480 },   // 理想高度
+        frameRate: { ideal: 15 }  // 理想帧率
       },
       audio: false  // 不需要音频
     })
@@ -349,7 +359,7 @@ const processVideoFrame = async () => {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       
       // 使用美颜引擎处理视频帧
-      const processed = engine.processImage(imageData, canvas.width, canvas.height, ProcessMode.Video)
+      const processed = engine.processImage(imageData, canvas.width, canvas.height, FrameType.Video)
 
       // 存储处理后的帧（用于拍照保存，保存的是未镜像的原始数据）
       lastProcessedFrame = processed
@@ -648,12 +658,14 @@ const applyBeautyParam = (tab, functionKey, value) => {
       // 虚拟背景功能使用统一的 Options API（与其他平台一致）
       if (functionKey === 'blur') {
         // 模糊背景模式
+        engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)   // 虚拟背景
         const options = new VirtualBackgroundOptions({
           mode: value > 0 ? BackgroundMode.Blur : BackgroundMode.None
         })
         engine.setVirtualBackground(options)
       } else if (functionKey === 'preset') {
         // 预置背景：加载预置图片并设置为 Image 模式
+        engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)   // 虚拟背景
         if (value > 0) {
           loadPresetBackground()
         } else {
@@ -666,6 +678,7 @@ const applyBeautyParam = (tab, functionKey, value) => {
         // 图像背景：需要用户选择图片
         // 如果 value > 0，说明用户想开启图像背景，但需要先选择图片
         // 这里先设置为 None，实际图片选择功能在 BeautyPanel 中处理
+        engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, true)
         if (value <= 0) {
           const options = new VirtualBackgroundOptions({
             mode: BackgroundMode.None
@@ -673,6 +686,7 @@ const applyBeautyParam = (tab, functionKey, value) => {
           engine.setVirtualBackground(options)
         }
       } else if (functionKey === 'none') {
+        engine.setBeautyTypeEnabled(BeautyType.VirtualBackground, false)   // 虚拟背景
         // 关闭虚拟背景
         const options = new VirtualBackgroundOptions({
           mode: BackgroundMode.None

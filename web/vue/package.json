@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "facebetter": "^1.0.14",
+    "facebetter": "file:../../../src/engine/web/facebetter",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3"
   },

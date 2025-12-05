@@ -1,11 +1,10 @@
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 
+#include "base/str_encrypt.h"
 #include "facebetter/beauty_effect_engine.h"
 #include "facebetter/image_frame.h"
-#include "image_buffer/rgba_image_buffer.h"
-#include "base/str_encrypt.h"
 #include "ghc/filesystem.hpp"
 
 namespace fs {
@@ -48,14 +47,15 @@ std::string GetExecutablePath() {
 }
 
 void PrintUsage(const char* program_name) {
-  std::cout << "Usage: " << program_name << " <input_image> <output_image> [options]\n"
+  std::cout << "Usage: " << program_name
+            << " <input_image> <output_image> [options]\n"
             << "\n"
             << "Arguments:\n"
             << "  input_image    Path to input image file\n"
             << "  output_image   Path to output image file\n"
             << "\n"
             << "Options:\n"
-            << "  --mode <mode>  Processing mode: image (default) or video\n"
+            << "  --mode <mode>  Frame type: image (default) or video\n"
             << "  --help         Show this help message\n"
             << "\n"
             << "Example:\n"
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
   std::string input_path = argv[1];
   std::string output_path = argv[2];
-  facebetter::ProcessMode process_mode = facebetter::ProcessMode::Image;
+  facebetter::FrameType frame_type = facebetter::FrameType::Image;
 
   // Parse optional arguments
   for (int i = 3; i < argc; ++i) {
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
     } else if (arg == "--mode" && i + 1 < argc) {
       std::string mode = argv[++i];
       if (mode == "video") {
-        process_mode = facebetter::ProcessMode::Video;
+        frame_type = facebetter::FrameType::Video;
       } else if (mode == "image") {
-        process_mode = facebetter::ProcessMode::Image;
+        frame_type = facebetter::FrameType::Image;
       } else {
         std::cerr << "Invalid mode: " << mode << ". Use 'image' or 'video'.\n";
         return 1;
@@ -94,7 +94,8 @@ int main(int argc, char* argv[]) {
 
   // Check if input file exists
   if (!fs::exists(input_path)) {
-    std::cerr << "Error: Input file does not exist: " << input_path << std::endl;
+    std::cerr << "Error: Input file does not exist: " << input_path
+              << std::endl;
     return 1;
   }
 
@@ -113,9 +114,19 @@ int main(int argc, char* argv[]) {
   // Initialize engine
   facebetter::EngineConfig config;
   config.resource_path = resource_bundle.string();
-  config.app_id = fb_str_crypt("dddb24155fd045ab9c2d8aad83ad3a4a");
-  config.app_key =
-      fb_str_crypt("-VINb6KRgm5ROMR6DlaIjVBO9CDvwsxRopNvtIbUyLc");
+  
+  // TODO: 替换为你的 AppId/AppKey
+  std::string app_id_str = "";
+  std::string app_key_str = "";
+  
+  // 验证 appId 和 appKey
+  if (app_id_str.empty() || app_key_str.empty()) {
+    std::cerr << "[Facebetter] Error: appId and appKey must be configured. Please set your appId and appKey in the code." << std::endl;
+    return 1;
+  }
+  
+  config.app_id = fb_str_crypt(app_id_str);
+  config.app_key = fb_str_crypt(app_key_str);
 
   std::cout << "[App] Creating beauty engine..." << std::endl;
   auto beauty_engine = facebetter::BeautyEffectEngine::Create(config);
@@ -134,19 +145,26 @@ int main(int argc, char* argv[]) {
 
   // Set beauty parameters (example values)
   std::cout << "[App] Setting beauty parameters..." << std::endl;
-  
+
   // Basic beauty parameters
-  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Smoothing, 0.5f);
-  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Whitening, 0.3f);
-  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Rosiness, 0.2f);
+  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Smoothing,
+                                0.5f);
+  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Whitening,
+                                0.3f);
+  beauty_engine->SetBeautyParam(facebetter::beauty_params::Basic::Rosiness,
+                                0.2f);
 
   // Reshape parameters
-  beauty_engine->SetBeautyParam(facebetter::beauty_params::Reshape::FaceThin, 0.9f);
-  beauty_engine->SetBeautyParam(facebetter::beauty_params::Reshape::EyeSize, 0.2f);
+  beauty_engine->SetBeautyParam(facebetter::beauty_params::Reshape::FaceThin,
+                                0.9f);
+  beauty_engine->SetBeautyParam(facebetter::beauty_params::Reshape::EyeSize,
+                                0.2f);
 
   // Makeup parameters
-  // beauty_engine->SetBeautyParam(facebetter::beauty_params::Makeup::Lipstick, 0.4f);
-  // beauty_engine->SetBeautyParam(facebetter::beauty_params::Makeup::Blush, 0.3f);
+  // beauty_engine->SetBeautyParam(facebetter::beauty_params::Makeup::Lipstick,
+  // 0.4f);
+  // beauty_engine->SetBeautyParam(facebetter::beauty_params::Makeup::Blush,
+  // 0.3f);
 
   // Virtual background (blur mode)
   // facebetter::beauty_params::VirtualBackgroundOptions bg_options;
@@ -161,33 +179,22 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  // Set frame type
+  input_frame->type = frame_type;
+
   // Process image
   std::cout << "[App] Processing image..." << std::endl;
-  auto processed_frame = beauty_engine->ProcessImage(input_frame, process_mode);
+  auto processed_frame = beauty_engine->ProcessImage(input_frame);
   if (!processed_frame) {
     std::cerr << "Error: Failed to process image" << std::endl;
     return 1;
   }
 
-  // Convert to RGBA and save
+  // Save output image
   std::cout << "[App] Saving output image: " << output_path << std::endl;
-  auto rgba_buffer = processed_frame->ToRGBA();
-  if (!rgba_buffer) {
-    std::cerr << "Error: Failed to convert to RGBA" << std::endl;
-    return 1;
-  }
-
-  // Save image using RGBAImageBuffer::ToFile
-  auto rgba_image_buffer =
-      std::static_pointer_cast<facebetter::RGBAImageBuffer>(rgba_buffer);
-  if (rgba_image_buffer) {
-    int result = rgba_image_buffer->ToFile(output_path, 90);
-    if (result != 0) {
-      std::cerr << "Error: Failed to save output image" << std::endl;
-      return 1;
-    }
-  } else {
-    std::cerr << "Error: Failed to cast to RGBAImageBuffer" << std::endl;
+  int result = processed_frame->ToFile(output_path, 90);
+  if (result != 0) {
+    std::cerr << "Error: Failed to save output image" << std::endl;
     return 1;
   }
 

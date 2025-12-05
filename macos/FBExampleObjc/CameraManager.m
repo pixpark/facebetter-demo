@@ -36,15 +36,15 @@
   return [self initWithSessionPreset:AVCaptureSessionPreset640x480 cameraDevice:device];
 }
 
-- (instancetype)initWithSessionPreset:(NSString*)sessionPreset 
-                          cameraDevice:(AVCaptureDevice*)cameraDevice {
+- (instancetype)initWithSessionPreset:(NSString*)sessionPreset
+                         cameraDevice:(AVCaptureDevice*)cameraDevice {
   if (!(self = [super init])) {
     return nil;
   }
 
   // Initialize processing queue
   processingQueue = dispatch_queue_create("com.cameramanager.processing", NULL);
-  
+
   // Initialize state
   frameRate = 0;
   isPaused = NO;
@@ -74,9 +74,8 @@
   // Add video output
   videoOutput = [[AVCaptureVideoDataOutput alloc] init];
   [videoOutput setAlwaysDiscardsLateVideoFrames:NO];
-  [videoOutput setVideoSettings:@{
-    (id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
-  }];
+  [videoOutput
+      setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA)}];
 
   [videoOutput setSampleBufferDelegate:self queue:processingQueue];
   if ([captureSession canAddOutput:videoOutput]) {
@@ -97,7 +96,7 @@
 - (void)dealloc {
   [self stopCapture];
   [videoOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
-  
+
   if (captureSession) {
     [captureSession removeInput:videoInput];
     [captureSession removeOutput:videoOutput];
@@ -133,8 +132,9 @@
   }
 
   AVCaptureDevicePosition currentPosition = [[videoInput device] position];
-  AVCaptureDevicePosition newPosition = (currentPosition == AVCaptureDevicePositionBack) ? 
-                                        AVCaptureDevicePositionFront : AVCaptureDevicePositionBack;
+  AVCaptureDevicePosition newPosition = (currentPosition == AVCaptureDevicePositionBack) ?
+      AVCaptureDevicePositionFront :
+      AVCaptureDevicePositionBack;
 
   AVCaptureDevice* newCamera = nil;
   NSArray* devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
@@ -147,12 +147,13 @@
 
   if (newCamera) {
     NSError* error;
-    AVCaptureDeviceInput* newVideoInput = [[AVCaptureDeviceInput alloc] initWithDevice:newCamera error:&error];
-    
+    AVCaptureDeviceInput* newVideoInput = [[AVCaptureDeviceInput alloc] initWithDevice:newCamera
+                                                                                 error:&error];
+
     if (newVideoInput) {
       [captureSession beginConfiguration];
       [captureSession removeInput:videoInput];
-      
+
       if ([captureSession canAddInput:newVideoInput]) {
         [captureSession addInput:newVideoInput];
         videoInput = newVideoInput;
@@ -160,7 +161,7 @@
       } else {
         [captureSession addInput:videoInput];
       }
-      
+
       [captureSession commitConfiguration];
     }
   }
@@ -204,7 +205,7 @@
 - (NSInteger)frameRate {
   return frameRate;
 }
- 
+
 #pragma mark -
 #pragma mark AVCaptureVideoDataOutputSampleBufferDelegate
 
